@@ -2,6 +2,7 @@
 description: Propose and apply a refactor in apps/api or apps/web, gated on explicit approval before touching more than one file
 allowed-tools: Read, Grep, Glob, Bash(pnpm --filter @todomaster/api test*), Bash(pnpm --filter @todomaster/web test*), Bash(pnpm --filter @todomaster/api typecheck), Bash(pnpm --filter @todomaster/web typecheck), Bash(pnpm --filter @todomaster/api lint), Bash(pnpm --filter @todomaster/web lint), Edit
 argument-hint: <file or area to refactor, e.g. apps/api/src/modules/sync/sync.service.ts>
+disable-model-invocation: true
 ---
 
 # Refactor

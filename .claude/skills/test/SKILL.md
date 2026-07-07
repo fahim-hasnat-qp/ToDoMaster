@@ -2,6 +2,7 @@
 description: Add or extend test coverage for a service, repository, or domain function in apps/api or apps/web, following this repo's existing test patterns
 allowed-tools: Read, Grep, Glob, Bash(pnpm --filter @todomaster/api test*), Bash(pnpm --filter @todomaster/web test*), Bash(pnpm --filter @todomaster/shared test*), Edit, Write
 argument-hint: <file or function to test, e.g. apps/api/src/modules/tasks/tasks.service.ts>
+disable-model-invocation: true
 ---
 
 # Test

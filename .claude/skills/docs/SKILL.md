@@ -2,6 +2,7 @@
 description: Write or update comments, ARCHITECTURE.md, or docs/features/*.md entries for a change in this repo, matching its existing why-not-what documentation style
 allowed-tools: Read, Grep, Glob, Edit, Write
 argument-hint: <file, feature, or design decision to document>
+disable-model-invocation: true
 ---
 
 # Docs

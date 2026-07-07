@@ -2,6 +2,7 @@
 description: Implement a full feature lifecycle — spec doc, approval gate, implementation, tests, auto-fix retry loop, self-review — for apps/api or apps/web
 allowed-tools: Read, Write, Edit, Glob, Bash(pnpm --filter @todomaster/api test*), Bash(pnpm --filter @todomaster/web test*), Bash(pnpm --filter @todomaster/shared test*), Bash(pnpm --filter @todomaster/api typecheck), Bash(pnpm --filter @todomaster/web typecheck), Bash(pnpm --filter @todomaster/api lint), Bash(pnpm --filter @todomaster/web lint), Bash(git status), Bash(git diff*)
 argument-hint: <feature description, e.g. "add subtask reminders" or "per-list default sort order">
+disable-model-invocation: true
 ---
 
 # Feature

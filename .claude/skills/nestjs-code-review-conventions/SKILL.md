@@ -1,6 +1,7 @@
 ---
 name: nestjs-code-review-conventions
 description: Review a diff touching apps/api services/DTOs/guards or apps/web stores/repositories/domain logic — checking Prisma mutation correctness (version bumps, transactions, ownership checks), DTO validation completeness, offline-first repository/outbox invariants, or whether new logic landed in the right layer (domain vs. store vs. component). Use before approving PRs in this repo, not for generic style nits.
+user-invocable: false
 ---
 
 # Code review conventions

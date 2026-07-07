@@ -1,6 +1,7 @@
 ---
 name: nestjs-documentation-conventions
 description: Write or review comments, JSDoc, and design docs in this repo — inline comments in apps/api services/guards, JSDoc headers on Zustand stores and hooks in apps/web, updating ARCHITECTURE.md's tradeoff sections, or adding a docs/features/NNN-*.md entry for a new feature. Use when a change needs explaining beyond the code itself, or when deciding whether a comment is worth adding at all.
+user-invocable: false
 ---
 
 # Documentation conventions

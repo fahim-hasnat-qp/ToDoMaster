@@ -1,6 +1,7 @@
 ---
 name: nestjs-debugging
 description: Debug NestJS API issues in apps/api — Prisma query/transaction bugs, sync conflict-resolution mismatches, JWT/guard auth failures, DTO validation rejections (400s from ValidationPipe), or version/optimistic-concurrency errors in tasks/lists/tags. Use when tracing a bug through controller → service → Prisma, or when the client and server disagree on entity state.
+user-invocable: false
 ---
 
 # NestJS debugging (apps/api)

@@ -1,6 +1,7 @@
 ---
 name: nestjs-testing-conventions
 description: Write or review tests for apps/api (Jest, *.service.spec.ts) or apps/web (Vitest, *.test.ts/.tsx) — mocking Prisma/PrismaService, testing Dexie-backed repositories, pure domain function tests, or contract tests validating API responses against shared zod schemas. Use when adding a new service/repository/domain function and it needs test coverage.
+user-invocable: false
 ---
 
 # Testing conventions

@@ -2,6 +2,7 @@
 description: Investigate and fix a bug in apps/api or apps/web, grounded in this repo's actual request path and known gotchas
 allowed-tools: Read, Grep, Glob, Bash(pnpm --filter @todomaster/api test*), Bash(pnpm --filter @todomaster/web test*), Bash(pnpm --filter @todomaster/api typecheck), Bash(pnpm --filter @todomaster/web typecheck), Edit
 argument-hint: <description of the bug, error message, or failing behavior>
+disable-model-invocation: true
 ---
 
 # Debug

@@ -1,6 +1,7 @@
 ---
 name: nestjs-refactoring-conventions
 description: Refactor NestJS services/controllers in apps/api or React feature files in apps/web — splitting an oversized file, extracting shared entity-mutation logic (task/list/tag CRUD + versioning), pulling business logic out of Zustand stores or React components, or deduplicating Prisma transaction patterns across sync.service.ts and tasks.service.ts.
+user-invocable: false
 ---
 
 # Refactoring conventions

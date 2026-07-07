@@ -2,6 +2,7 @@
 description: Review a diff or file in apps/api or apps/web against this repo's real invariants (version bumps, ownership checks, transactions, outbox pairing, layering) and produce a severity-tagged report
 allowed-tools: Read, Grep, Glob, Bash(git diff*), Bash(git log*), Bash(git status)
 argument-hint: [file, PR number, or range — defaults to the current uncommitted diff]
+disable-model-invocation: true
 ---
 
 # Review
