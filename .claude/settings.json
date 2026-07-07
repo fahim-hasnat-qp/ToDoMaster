@@ -2,7 +2,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -26,13 +26,13 @@
           {
             "type": "command",
             "statusMessage": "Checking for blocked git operations (pairs with /refactor)",
-            "command": "cmd=$(jq -r '.tool_input.command // empty'); [ -z \"$cmd\" ] && exit 0; if echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+push([[:space:]].*)?[[:space:]](--force|--force-with-lease|-f)([[:space:]]|$)'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Force-push is blocked during refactoring work. If genuinely needed, run it outside of /refactor.\"}}'; exit 0; fi; if echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+push([[:space:]]+[^&|;]*)?[[:space:]](origin[[:space:]]+)?(main|master)([[:space:]]|$)'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Direct push to main/master is blocked. Push a branch and open a PR instead.\"}}'; exit 0; fi; exit 0",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); [ -z \"$cmd\" ] && exit 0; seg=$(echo \"$cmd\" | tr ';|&' '\\n' | grep -E '^[[:space:]]*(command[[:space:]]+)?git[[:space:]]+push([[:space:]]|$)'); [ -z \"$seg\" ] && exit 0; if echo \"$seg\" | grep -qE '(^|[[:space:]])(--force|--force-with-lease|-f)([[:space:]]|$)'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Force-push is blocked during refactoring work. If genuinely needed, run it outside of /refactor.\"}}'; exit 0; fi; blocked=\"\"; while IFS= read -r line; do rest=$(echo \"$line\" | sed -E 's/^[[:space:]]*(command[[:space:]]+)?git[[:space:]]+push//'); pos=$(echo \"$rest\" | tr ' ' '\\n' | grep -vE '^-' | grep -vE '^[[:space:]]*$'); if [ -z \"$pos\" ]; then upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null); branch=$(echo \"$upstream\" | sed -E 's#^[^/]+/##'); echo \"$branch\" | grep -qE '^(main|master)$' && blocked=1; else while IFS= read -r arg; do dest=$(echo \"$arg\" | sed -E 's/^.*://'); echo \"$dest\" | grep -qE '^(main|master)$' && blocked=1; done <<< \"$pos\"; fi; done <<< \"$seg\"; if [ -n \"$blocked\" ]; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Direct push to main/master is blocked (including bare git push when upstream tracks main/master, and refspecs targeting it). Push a branch and open a PR instead.\"}}'; fi; exit 0",
             "timeout": 10
           },
           {
             "type": "command",
             "statusMessage": "Scanning staged changes for secrets (pairs with /review)",
-            "command": "cmd=$(jq -r '.tool_input.command // empty'); echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+commit([[:space:]]|$)' || exit 0; if ! command -v gitleaks >/dev/null 2>&1; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks is not installed, so the pre-commit secret scan cannot run. Install it first (brew install gitleaks), then retry the commit.\"}}'; exit 0; fi; cd /Users/user/Desktop/Projects/ToDoMaster || exit 0; if ! gitleaks protect --staged --no-banner --redact >/tmp/gitleaks-output.txt 2>&1; then reason=$(tr '\\n' ' ' </tmp/gitleaks-output.txt | sed 's/\"/\\\\\"/g'); printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks found a likely secret in the staged changes: %s\"}}' \"$reason\"; fi; exit 0",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); [ -z \"$cmd\" ] && exit 0; echo \"$cmd\" | tr ';|&' '\\n' | grep -qE '^[[:space:]]*(command[[:space:]]+)?git[[:space:]]+commit([[:space:]]|$)' || exit 0; if ! command -v gitleaks >/dev/null 2>&1; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks is not installed, so the pre-commit secret scan cannot run. Install it first (brew install gitleaks), then retry the commit.\"}}'; exit 0; fi; cd /Users/user/Desktop/Projects/ToDoMaster || exit 0; if ! gitleaks protect --staged --no-banner --redact >/tmp/gitleaks-output.txt 2>&1; then reason=$(tr '\\n' ' ' </tmp/gitleaks-output.txt | sed 's/\"/\\\\\"/g'); printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks found a likely secret in the staged changes: %s\"}}' \"$reason\"; fi; exit 0",
             "timeout": 30
           }
         ]
