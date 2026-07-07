@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(docker --version)",
+      "Bash(psql --version)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @todomaster/shared test)",
+      "Bash(pnpm --filter @todomaster/web test)",
+      "Bash(pnpm exec *)"
+    ]
+  }
+}

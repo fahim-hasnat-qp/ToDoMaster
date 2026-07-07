@@ -1,0 +1,172 @@
+// Prisma schema — mirrors packages/shared entity shapes (see ARCHITECTURE.md §5).
+// Every syncable table carries: id (uuid), userId, createdAt, updatedAt, deletedAt, version.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  EMAIL
+  GUEST
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String?      @unique
+  passwordHash  String?
+  provider      AuthProvider @default(GUEST)
+  emailVerified Boolean      @default(false)
+  displayName   String?
+  avatarUrl     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  lists              List[]
+  tasks              Task[]
+  tags               Tag[]
+  verificationTokens VerificationToken[]
+
+  @@index([provider])
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+// Single-use tokens emailed to the user (see mailer.service.ts). Not soft-deleted
+// like the syncable entities — these are consumed once (or expire) and are
+// housekeeping data, not something a client ever reads via sync.
+model VerificationToken {
+  id        String                 @id @default(uuid())
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VerificationTokenType
+  tokenHash String                 @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime               @default(now())
+
+  @@index([userId, type])
+}
+
+model List {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String
+  icon      String    @default("list")
+  isDefault Boolean   @default(false)
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+  version   Int       @default(0)
+
+  tasks Task[]
+
+  @@index([userId, updatedAt])
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+  version   Int       @default(0)
+
+  taskTags TaskTag[]
+
+  @@index([userId, updatedAt])
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String    @default("")
+  notes       String    @default("")
+
+  listId   String?
+  list     List?   @relation(fields: [listId], references: [id], onDelete: SetNull)
+  priority Int     @default(0)
+
+  dueDate String? // "YYYY-MM-DD"
+  dueTime String? // "HH:mm"
+
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  archived    Boolean   @default(false)
+
+  // Recurrence rule stored as JSON matching packages/shared's RecurrenceRule.
+  recurrence      Json?
+  recurrenceCount Int   @default(0)
+
+  parentTaskId String?
+  parentTask   Task?   @relation("Subtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks     Task[]  @relation("Subtasks")
+
+  order Int @default(0)
+
+  // Checklist items and reminders are small, task-owned collections stored as
+  // JSON rather than separate tables — they have no independent lifecycle or
+  // query pattern outside "belongs to this task" (see ARCHITECTURE.md §4).
+  checklist Json @default("[]")
+  reminders Json @default("[]")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+  version   Int       @default(0)
+
+  taskTags TaskTag[]
+
+  @@index([userId, listId])
+  @@index([userId, dueDate])
+  @@index([userId, completed])
+  @@index([userId, updatedAt])
+  @@index([parentTaskId])
+}
+
+// Explicit join table (rather than an implicit Prisma m2m) so the sync layer
+// can treat tag assignment as part of the Task's own payload (task.tagIds)
+// without exposing a separate syncable entity for it.
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@index([tagId])
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_COMPLETED
+  TASK_UNCOMPLETED
+  TASK_DELETED
+}
+
+// Append-only log — feeds Statistics/Gamification (later milestones). Never
+// updated or soft-deleted; rows are immutable facts about what happened.
+model ActivityEvent {
+  id        String       @id @default(uuid())
+  userId    String
+  type      ActivityType
+  taskId    String?
+  createdAt DateTime     @default(now())
+
+  @@index([userId, createdAt])
+}

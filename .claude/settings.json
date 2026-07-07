@@ -1,0 +1,42 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Re-running related tests (pairs with /debug)",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); [ -z \"$f\" ] && exit 0; case \"$f\" in */apps/api/src/*.ts) cd /Users/user/Desktop/Projects/ToDoMaster/apps/api || exit 0; pnpm exec jest --findRelatedTests \"$f\" --passWithNoTests ;; */apps/web/src/*.ts|*/apps/web/src/*.tsx) cd /Users/user/Desktop/Projects/ToDoMaster/apps/web || exit 0; pnpm exec vitest related \"$f\" --run ;; *) exit 0 ;; esac",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "statusMessage": "Checking for Swagger decorators (pairs with /docs)",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); [ -z \"$f\" ] && exit 0; case \"$f\" in */apps/api/src/*) : ;; *) exit 0 ;; esac; [ -f \"$f\" ] || exit 0; if grep -qE '@Api(Property|Tags|Operation|Response|Bearer)' \"$f\"; then printf '{\"systemMessage\":\"%s introduces a Swagger decorator (@ApiProperty/@ApiTags/etc.) \\u2014 nestjs-documentation-conventions confirms this repo has no Swagger tooling configured. If this is an intentional new convention say so explicitly; otherwise remove it.\"}' \"$f\"; fi; exit 0",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Checking for blocked git operations (pairs with /refactor)",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); [ -z \"$cmd\" ] && exit 0; if echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+push([[:space:]].*)?[[:space:]](--force|--force-with-lease|-f)([[:space:]]|$)'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Force-push is blocked during refactoring work. If genuinely needed, run it outside of /refactor.\"}}'; exit 0; fi; if echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+push([[:space:]]+[^&|;]*)?[[:space:]](origin[[:space:]]+)?(main|master)([[:space:]]|$)'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Direct push to main/master is blocked. Push a branch and open a PR instead.\"}}'; exit 0; fi; exit 0",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "statusMessage": "Scanning staged changes for secrets (pairs with /review)",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); echo \"$cmd\" | grep -qE '(^|[[:space:]])git[[:space:]]+commit([[:space:]]|$)' || exit 0; if ! command -v gitleaks >/dev/null 2>&1; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks is not installed, so the pre-commit secret scan cannot run. Install it first (brew install gitleaks), then retry the commit.\"}}'; exit 0; fi; cd /Users/user/Desktop/Projects/ToDoMaster || exit 0; if ! gitleaks protect --staged --no-banner --redact >/tmp/gitleaks-output.txt 2>&1; then reason=$(tr '\\n' ' ' </tmp/gitleaks-output.txt | sed 's/\"/\\\\\"/g'); printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gitleaks found a likely secret in the staged changes: %s\"}}' \"$reason\"; fi; exit 0",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: todomaster-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: todomaster
+      POSTGRES_PASSWORD: todomaster
+      POSTGRES_DB: todomaster
+    ports:
+      - "5432:5432"
+    volumes:
+      - todomaster_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todomaster"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  todomaster_pgdata:
