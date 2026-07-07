@@ -11,7 +11,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    const apply = () => root.setAttribute("data-theme", resolveTheme("test"));
+    const apply = () => root.setAttribute("data-theme", resolveTheme(theme));
     apply();
 
     if (theme === "system") {
